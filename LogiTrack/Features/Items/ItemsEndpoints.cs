@@ -2,6 +2,7 @@
 using LogiTrack.Features.Items.DeleteItem;
 using LogiTrack.Features.Items.GetItem;
 using LogiTrack.Features.Items.GetItems;
+using LogiTrack.Features.Auth;
 
 namespace LogiTrack.Features.Items
 {
@@ -9,7 +10,8 @@ namespace LogiTrack.Features.Items
     {
         public static void MapItems(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("/api/items");
+            var group = app.MapGroup("/api/items")
+                .RequireAuthorization(AuthPolicies.OperatorOrAdministrator);
 
             // Map Items endpoints
             group.MapCreateItem();

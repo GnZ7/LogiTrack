@@ -26,5 +26,12 @@ namespace LogiTrack.Data
             var seedService = scope.ServiceProvider.GetRequiredService<SeedService>();
             await seedService.SeedDataAsync();
         }
+
+        public static async Task SeedIdentityAsync(this WebApplication app)
+        {
+            using var scope = app.Services.CreateScope();
+            var seedService = scope.ServiceProvider.GetRequiredService<IdentitySeedService>();
+            await seedService.SeedIdentityAsync();
+        }
     }
 }

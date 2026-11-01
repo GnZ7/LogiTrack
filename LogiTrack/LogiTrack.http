@@ -1,14 +1,33 @@
-@LogiTrack_HostAddress = http://localhost:5025
+@LogiTrack_HostAddress = https://localhost:7123
 
-GET {{LogiTrack_HostAddress}}/weatherforecast/
-Accept: application/json
+# See the repository README for local authentication setup with User Secrets.
 
 ###
+
+### Register an operator account
+POST {{LogiTrack_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "operator@example.com",
+  "password": "ChangeMe123!"
+}
+
+### Log in and copy the returned accessToken for the API requests below
+# @name login
+POST {{LogiTrack_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "operator@example.com",
+  "password": "ChangeMe123!"
+}
 
 ### Create inventory for order examples
 # @name createInventoryItem
 POST {{LogiTrack_HostAddress}}/api/items
 Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.accessToken}}
 
 {
   "name": "Packing boxes",
@@ -20,6 +39,7 @@ Content-Type: application/json
 # @name createOrder
 POST {{LogiTrack_HostAddress}}/api/orders
 Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.accessToken}}
 
 {
   "customerName": "Acme Logistics",
@@ -34,14 +54,17 @@ Content-Type: application/json
 ### Get the created order
 GET {{LogiTrack_HostAddress}}/api/orders/{{createOrder.response.body.$.orderId}}
 Accept: application/json
+Authorization: Bearer {{login.response.body.$.accessToken}}
 
 ### Get a non-existent order
 GET {{LogiTrack_HostAddress}}/api/orders/00000000-0000-0000-0000-000000000000
 Accept: application/json
+Authorization: Bearer {{login.response.body.$.accessToken}}
 
 ### Try to order more than the remaining inventory
 POST {{LogiTrack_HostAddress}}/api/orders
 Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.accessToken}}
 
 {
   "customerName": "Acme Logistics",
@@ -56,6 +79,7 @@ Content-Type: application/json
 ### Try to order an item that does not exist
 POST {{LogiTrack_HostAddress}}/api/orders
 Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.accessToken}}
 
 {
   "customerName": "Acme Logistics",
@@ -68,7 +92,10 @@ Content-Type: application/json
 }
 
 ### Delete the created order
+# This returns 403 for an operator; use a configured Administrator token to delete.
 DELETE {{LogiTrack_HostAddress}}/api/orders/{{createOrder.response.body.$.orderId}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
 
 ### Delete a non-existent order
 DELETE {{LogiTrack_HostAddress}}/api/orders/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{login.response.body.$.accessToken}}

@@ -1,6 +1,7 @@
 ﻿using LogiTrack.Features.Orders.CreateOrder;
 using LogiTrack.Features.Orders.DeleteOrder;
 using LogiTrack.Features.Orders.GetOrder;
+using LogiTrack.Features.Auth;
 
 namespace LogiTrack.Features.Orders
 {
@@ -8,7 +9,8 @@ namespace LogiTrack.Features.Orders
     {
         public static void MapOrders(this IEndpointRouteBuilder app)
         {
-            var group = app.MapGroup("/api/orders");
+            var group = app.MapGroup("/api/orders")
+                .RequireAuthorization(AuthPolicies.OperatorOrAdministrator);
             
             // Map Orders endpoints
             group.MapCreateOrder();

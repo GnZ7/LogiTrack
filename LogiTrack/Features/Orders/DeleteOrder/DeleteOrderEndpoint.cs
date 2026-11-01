@@ -1,4 +1,5 @@
 ﻿using LogiTrack.Data;
+using LogiTrack.Features.Auth;
 using Microsoft.EntityFrameworkCore;
 
 namespace LogiTrack.Features.Orders.DeleteOrder
@@ -8,6 +9,7 @@ namespace LogiTrack.Features.Orders.DeleteOrder
         public static void MapDeleteOrder(this IEndpointRouteBuilder app)
         {
             app.MapDelete("/{id:guid}", Handle)
+                .RequireAuthorization(AuthPolicies.Administrator)
                 .Produces(StatusCodes.Status204NoContent)
                 .Produces(StatusCodes.Status404NotFound);
         }

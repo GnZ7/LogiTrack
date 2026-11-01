@@ -1,4 +1,5 @@
 ﻿using LogiTrack.Data;
+using LogiTrack.Features.Auth;
 using LogiTrack.Features.Items.Shared;
 using LogiTrack.Models;
 
@@ -9,7 +10,7 @@ namespace LogiTrack.Features.Items.CreateItem
         // POST /api/items
         public static void MapCreateItem(this IEndpointRouteBuilder app)
         {
-            app.MapPost("/", Handle)
+            app.MapPost("/", Handle)                
                 .Produces<ItemResponse>(StatusCodes.Status201Created)
                 .ProducesValidationProblem();
         }

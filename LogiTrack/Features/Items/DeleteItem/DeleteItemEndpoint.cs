@@ -1,4 +1,5 @@
 ﻿using LogiTrack.Data;
+using LogiTrack.Features.Auth;
 using Microsoft.EntityFrameworkCore;
 
 namespace LogiTrack.Features.Items.DeleteItem
@@ -8,7 +9,7 @@ namespace LogiTrack.Features.Items.DeleteItem
         public static void MapDeleteItem(this IEndpointRouteBuilder app)
         {
             app.MapDelete("/{id}", Handle)
-                
+                .RequireAuthorization(AuthPolicies.Administrator)
                 .Produces(StatusCodes.Status204NoContent)
                 .Produces(StatusCodes.Status404NotFound)
                 .ProducesProblem(StatusCodes.Status409Conflict);
