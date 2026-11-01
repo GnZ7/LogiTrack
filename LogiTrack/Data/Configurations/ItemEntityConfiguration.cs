@@ -19,6 +19,6 @@ internal class ItemEntityConfiguration : IEntityTypeConfiguration<Item>
             .IsRequired();
         entity.Property(i => i.Location)
             .IsRequired()
-            .HasMaxLength(200);
+            .HasMaxLength(200);        
     }
 }

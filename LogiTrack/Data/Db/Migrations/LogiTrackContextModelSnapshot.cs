@@ -33,15 +33,10 @@ namespace LogiTrack.Data.Db.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid?>("OrderId")
-                        .HasColumnType("TEXT");
-
                     b.Property<int>("Quantity")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("ItemId");
-
-                    b.HasIndex("OrderId");
 
                     b.ToTable("Items");
                 });
@@ -68,14 +63,56 @@ namespace LogiTrack.Data.Db.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("LogiTrack.Models.Item", b =>
+            modelBuilder.Entity("LogiTrack.Models.OrderItem", b =>
                 {
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("OrderId", "ItemId");
+
+                    b.HasIndex("ItemId");
+
+                    b.ToTable("OrderItem");
+                });
+
+            modelBuilder.Entity("LogiTrack.Models.OrderItem", b =>
+                {
+                    b.HasOne("LogiTrack.Models.Item", "Item")
+                        .WithMany("OrderItems")
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("LogiTrack.Models.Order", "Order")
                         .WithMany("Items")
                         .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Item");
 
                     b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("LogiTrack.Models.Item", b =>
+                {
+                    b.Navigation("OrderItems");
                 });
 
             modelBuilder.Entity("LogiTrack.Models.Order", b =>

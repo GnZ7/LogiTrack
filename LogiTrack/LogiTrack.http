@@ -4,3 +4,71 @@ GET {{LogiTrack_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+### Create inventory for order examples
+# @name createInventoryItem
+POST {{LogiTrack_HostAddress}}/api/items
+Content-Type: application/json
+
+{
+  "name": "Packing boxes",
+  "quantity": 10,
+  "location": "Warehouse A"
+}
+
+### Create an order
+# @name createOrder
+POST {{LogiTrack_HostAddress}}/api/orders
+Content-Type: application/json
+
+{
+  "customerName": "Acme Logistics",
+  "items": [
+    {
+      "itemId": "{{createInventoryItem.response.body.$.itemId}}",
+      "quantity": 2
+    }
+  ]
+}
+
+### Get the created order
+GET {{LogiTrack_HostAddress}}/api/orders/{{createOrder.response.body.$.orderId}}
+Accept: application/json
+
+### Get a non-existent order
+GET {{LogiTrack_HostAddress}}/api/orders/00000000-0000-0000-0000-000000000000
+Accept: application/json
+
+### Try to order more than the remaining inventory
+POST {{LogiTrack_HostAddress}}/api/orders
+Content-Type: application/json
+
+{
+  "customerName": "Acme Logistics",
+  "items": [
+    {
+      "itemId": "{{createInventoryItem.response.body.$.itemId}}",
+      "quantity": 100
+    }
+  ]
+}
+
+### Try to order an item that does not exist
+POST {{LogiTrack_HostAddress}}/api/orders
+Content-Type: application/json
+
+{
+  "customerName": "Acme Logistics",
+  "items": [
+    {
+      "itemId": "00000000-0000-0000-0000-000000000000",
+      "quantity": 1
+    }
+  ]
+}
+
+### Delete the created order
+DELETE {{LogiTrack_HostAddress}}/api/orders/{{createOrder.response.body.$.orderId}}
+
+### Delete a non-existent order
+DELETE {{LogiTrack_HostAddress}}/api/orders/00000000-0000-0000-0000-000000000000

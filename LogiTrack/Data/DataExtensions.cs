@@ -11,9 +11,9 @@ namespace LogiTrack.Data
             using var scope = app.Services.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<LogiTrackContext>();
 
+            // Ensure the directory for the SQLite database exists
             var dataSource = new SqliteConnectionStringBuilder(context.Database.GetConnectionString()).DataSource;
             var directory = Path.GetDirectoryName(Path.GetFullPath(dataSource));
-
             if (!string.IsNullOrEmpty(directory))
                 Directory.CreateDirectory(directory);
 
@@ -21,7 +21,7 @@ namespace LogiTrack.Data
         }
 
         public static async Task SeedDataAsync(this WebApplication app)
-        {
+        {   
             using var scope = app.Services.CreateScope();
             var seedService = scope.ServiceProvider.GetRequiredService<SeedService>();
             await seedService.SeedDataAsync();

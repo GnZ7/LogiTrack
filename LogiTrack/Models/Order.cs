@@ -2,17 +2,17 @@
 
 public class Order
 {        
-    private readonly List<Item> _items = [];
+    private readonly List<OrderItem> _items = [];
 
     public Guid OrderId { get; set; }
     public string CustomerName { get; set; } = string.Empty;
     public DateTime DatePlaced { get; set; }        
     public DateTime? UpdatedAt { get; set; }
-    public IReadOnlyList<Item> Items => _items.AsReadOnly();
+    public IReadOnlyList<OrderItem> Items => _items.AsReadOnly();
 
     //private Order() { } lo comento para ver por qué hace falta?
 
-    public static Order Create(string customerName, List<Item> items)
+    public static Order Create(string customerName, List<OrderItem> items)
     {
         var order = new Order
         {
@@ -26,19 +26,19 @@ public class Order
         return order;
     }
     
-    public void AddItems(List<Item> items)
+    public void AddItems(List<OrderItem> items)
     {
         _items.AddRange(items);
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void AddItem(Item item)
+    public void AddItem(OrderItem item)
     {
         _items.Add(item);
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void RemoveItem(Item item)
+    public void RemoveItem(OrderItem item)
     {
         _items.Remove(item);
         UpdatedAt = DateTime.UtcNow;

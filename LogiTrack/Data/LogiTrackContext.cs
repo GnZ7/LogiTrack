@@ -7,6 +7,7 @@ public class LogiTrackContext(DbContextOptions<LogiTrackContext> options) : DbCo
 {
     public DbSet<Item> Items => Set<Item>();
     public DbSet<Order> Orders => Set<Order>();    
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

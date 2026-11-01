@@ -1,6 +1,9 @@
 using LogiTrack.Data;
 using LogiTrack.Data.Seeding;
+using LogiTrack.Features.Items;
+using LogiTrack.Features.Orders;
 using LogiTrack.Shared.ErrorHandling;
+using LogiTrack.Shared.OpenApi;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,22 +27,16 @@ builder.Services.AddValidation();
 
 var app = builder.Build();
 
+// Map endpoints
+app.MapItems();
+app.MapOrders();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-
+{ 
     await app.MigrateDbAsync();
-
     await app.SeedDataAsync();
-
-    //TODO: Extract to Extensions
-    app.MapOpenApi();
-    app.UseSwaggerUI(options =>
-    {
-        options.DocumentTitle = "LogiTrack API Documentation";
-        options.SwaggerEndpoint("/openapi/v1.json", "LogiTrack API V1");        
-    });
+    app.ConfigureSwaggerUI();
 }
 else
 {
