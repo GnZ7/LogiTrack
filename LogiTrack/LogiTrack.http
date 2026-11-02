@@ -1,10 +1,11 @@
 @LogiTrack_HostAddress = https://localhost:7123
 
-# See the repository README for local authentication setup with User Secrets.
+# See the repository README for setup and instructions for running these requests.
+# Start the API with: dotnet run --launch-profile https
 
 ###
 
-### Register an operator account
+### Register an operator account (send once; use a new email if it already exists)
 POST {{LogiTrack_HostAddress}}/api/auth/register
 Content-Type: application/json
 
@@ -13,7 +14,7 @@ Content-Type: application/json
   "password": "ChangeMe123!"
 }
 
-### Log in and copy the returned accessToken for the API requests below
+### Log in as the operator; protected requests use this response's token
 # @name login
 POST {{LogiTrack_HostAddress}}/api/auth/login
 Content-Type: application/json
@@ -23,7 +24,7 @@ Content-Type: application/json
   "password": "ChangeMe123!"
 }
 
-### Create inventory for order examples
+### Create inventory for the order examples
 # @name createInventoryItem
 POST {{LogiTrack_HostAddress}}/api/items
 Content-Type: application/json
@@ -34,6 +35,16 @@ Authorization: Bearer {{login.response.body.$.accessToken}}
   "quantity": 10,
   "location": "Warehouse A"
 }
+
+### List inventory (send twice within 30 seconds to observe a cache hit in API logs)
+GET {{LogiTrack_HostAddress}}/api/items?pageNumber=1&pageSize=10
+Accept: application/json
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Get the created inventory item
+GET {{LogiTrack_HostAddress}}/api/items/{{createInventoryItem.response.body.$.itemId}}
+Accept: application/json
+Authorization: Bearer {{login.response.body.$.accessToken}}
 
 ### Create an order
 # @name createOrder
@@ -56,12 +67,12 @@ GET {{LogiTrack_HostAddress}}/api/orders/{{createOrder.response.body.$.orderId}}
 Accept: application/json
 Authorization: Bearer {{login.response.body.$.accessToken}}
 
-### Get a non-existent order
+### Get a non-existent order (expect 404)
 GET {{LogiTrack_HostAddress}}/api/orders/00000000-0000-0000-0000-000000000000
 Accept: application/json
 Authorization: Bearer {{login.response.body.$.accessToken}}
 
-### Try to order more than the remaining inventory
+### Try to order more than the remaining inventory (expect 409)
 POST {{LogiTrack_HostAddress}}/api/orders
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.accessToken}}
@@ -76,7 +87,7 @@ Authorization: Bearer {{login.response.body.$.accessToken}}
   ]
 }
 
-### Try to order an item that does not exist
+### Try to order an item that does not exist (expect 400)
 POST {{LogiTrack_HostAddress}}/api/orders
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.$.accessToken}}
@@ -91,11 +102,22 @@ Authorization: Bearer {{login.response.body.$.accessToken}}
   ]
 }
 
-### Delete the created order
-# This returns 403 for an operator; use a configured Administrator token to delete.
-DELETE {{LogiTrack_HostAddress}}/api/orders/{{createOrder.response.body.$.orderId}}
-Authorization: Bearer {{login.response.body.$.accessToken}}
+### Log in as the configured administrator to run delete examples below
+# Replace these values with Authentication:Admin:Email and
+# Authentication:Admin:Password from User Secrets or your secure configuration.
+# @name adminLogin
+POST {{LogiTrack_HostAddress}}/api/auth/login
+Content-Type: application/json
 
-### Delete a non-existent order
-DELETE {{LogiTrack_HostAddress}}/api/orders/00000000-0000-0000-0000-000000000000
-Authorization: Bearer {{login.response.body.$.accessToken}}
+{
+  "email": "admin@example.com",
+  "password": "ReplaceWithAdminPassword123!"
+}
+
+### Delete the created order (requires administrator; expect 204)
+DELETE {{LogiTrack_HostAddress}}/api/orders/{{createOrder.response.body.$.orderId}}
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
+
+### Delete the created item after deleting the order (requires administrator; expect 204)
+DELETE {{LogiTrack_HostAddress}}/api/items/{{createInventoryItem.response.body.$.itemId}}
+Authorization: Bearer {{adminLogin.response.body.$.accessToken}}
