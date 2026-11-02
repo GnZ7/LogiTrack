@@ -2,6 +2,7 @@
 using LogiTrack.Features.Items.DeleteItem;
 using LogiTrack.Features.Items.GetItem;
 using LogiTrack.Features.Items.GetItems;
+using LogiTrack.Features.Items.UpdateItem;
 using LogiTrack.Features.Auth;
 
 namespace LogiTrack.Features.Items
@@ -18,6 +19,7 @@ namespace LogiTrack.Features.Items
             group.MapGetItem();
             group.MapDeleteItem();
             group.MapGetItems();
+            group.MapUpdateItem();
         }
     }
 

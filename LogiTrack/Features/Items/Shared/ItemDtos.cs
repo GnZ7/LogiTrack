@@ -6,6 +6,7 @@ namespace LogiTrack.Features.Items.Shared
 
     
     public record CreateItemRequest([Required][StringLength(120)] string Name, [Range(0, int.MaxValue)] int Quantity, [Required][StringLength(200)] string Location);
+    public record UpdateItemRequest([Required][StringLength(120)] string Name, [Range(0, int.MaxValue)] int Quantity, [Required][StringLength(200)] string Location);
    
     public record GetItemsResponse(IEnumerable<ItemResponse> Items, int TotalPages);
     public record GetItemsRequest(

@@ -46,6 +46,29 @@ GET {{LogiTrack_HostAddress}}/api/items/{{createInventoryItem.response.body.$.it
 Accept: application/json
 Authorization: Bearer {{login.response.body.$.accessToken}}
 
+### Update the created inventory item
+# @name updateInventoryItem
+PUT {{LogiTrack_HostAddress}}/api/items/{{createInventoryItem.response.body.$.itemId}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+{
+  "name": "Packing boxes",
+  "quantity": 12,
+  "location": "Warehouse B"
+}
+
+### Update a non-existent inventory item (expect 404)
+PUT {{LogiTrack_HostAddress}}/api/items/00000000-0000-0000-0000-000000000000
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+{
+  "name": "Missing item",
+  "quantity": 1,
+  "location": "Warehouse A"
+}
+
 ### Create an order
 # @name createOrder
 POST {{LogiTrack_HostAddress}}/api/orders
@@ -62,7 +85,53 @@ Authorization: Bearer {{login.response.body.$.accessToken}}
   ]
 }
 
-### Get the created order
+### Try to update the order beyond available stock (expect 409; original order remains unchanged)
+PUT {{LogiTrack_HostAddress}}/api/orders/{{createOrder.response.body.$.orderId}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+{
+  "customerName": "Acme Logistics",
+  "items": [
+    {
+      "itemId": "{{createInventoryItem.response.body.$.itemId}}",
+      "quantity": 100
+    }
+  ]
+}
+
+### Update the order and replace its item reservation
+# @name updateOrder
+PUT {{LogiTrack_HostAddress}}/api/orders/{{createOrder.response.body.$.orderId}}
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+{
+  "customerName": "Acme Logistics - updated",
+  "items": [
+    {
+      "itemId": "{{createInventoryItem.response.body.$.itemId}}",
+      "quantity": 3
+    }
+  ]
+}
+
+### Update a non-existent order (expect 404)
+PUT {{LogiTrack_HostAddress}}/api/orders/00000000-0000-0000-0000-000000000000
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+{
+  "customerName": "Missing order",
+  "items": [
+    {
+      "itemId": "{{createInventoryItem.response.body.$.itemId}}",
+      "quantity": 1
+    }
+  ]
+}
+
+### Get the updated order
 GET {{LogiTrack_HostAddress}}/api/orders/{{createOrder.response.body.$.orderId}}
 Accept: application/json
 Authorization: Bearer {{login.response.body.$.accessToken}}

@@ -28,18 +28,17 @@ before using it as a production service.
 
 - Register operator accounts and issue signed JWT access tokens.
 - Protect inventory and order endpoints with role-based authorization.
-- Create, retrieve, list, and delete inventory items.
+- Create, retrieve, list, update, and delete inventory items.
 - Paginate and sort inventory results by item name.
 - Cache each inventory list page in process memory for 30 seconds; cache
   hit/miss events are logged.
 - Place orders using inventory item IDs and quantities.
 - Check and decrement stock as part of order creation; reject requests when
   stock is insufficient.
+- Update orders and their item reservations transactionally.
 - Retrieve orders with the item details captured when the order was placed.
 - Delete orders and unreferenced inventory items as an administrator.
 - Generate an OpenAPI document and Swagger UI for Development.
-
-There is currently no inventory-update endpoint or order-update endpoint.
 
 ## Architecture
 
@@ -107,8 +106,10 @@ item's name and location as order-line details.
   removed and saved.
 - **Transactional stock reservation:** order creation uses a database
   transaction and a conditional update that only decrements stock when enough
-  quantity is available. If an item cannot be reserved, the transaction is
-  rolled back and the API returns a conflict.
+  quantity is available. Order updates restore the previous reservations and
+  reserve the replacement lines in the same transaction. If the requested
+  quantity cannot be reserved, the transaction is rolled back and the API
+  returns a conflict.
 - **Cache-aside for inventory pages:** `GET /api/items` caches each page and
   page-size combination for 30 seconds using `IMemoryCache`. It is an
   in-process cache, so entries are not shared across instances and can be
@@ -238,10 +239,42 @@ Unless stated otherwise, protected routes require
 | `GET` | `/api/items?pageNumber=1&pageSize=10` | Operator, Administrator | List inventory ordered by name. Both query parameters must be at least 1. | `200`, `400` validation problem |
 | `GET` | `/api/items/{id}` | Operator, Administrator | Get one item by GUID. | `200`, `404` |
 | `POST` | `/api/items` | Operator, Administrator | Create an inventory item. Name is required (max 120), quantity must be non-negative, and location is required (max 200). | `201`, `400` validation problem |
+| `PUT` | `/api/items/{id}` | Operator, Administrator | Replace an inventory item's name, available quantity, and location. The same field limits as item creation apply. | `200`, `400` validation problem, `404` |
 | `DELETE` | `/api/items/{id}` | Administrator | Delete an item if no order references it. | `204`, `404`, `409` if referenced |
 | `POST` | `/api/orders` | Operator, Administrator | Create an order and reserve inventory. Customer name is required (max 120), at least one item is required, and quantities must be positive. Item IDs must exist and be unique within the request. | `201`, `400` validation problem, `409` insufficient inventory |
 | `GET` | `/api/orders/{id}` | Operator, Administrator | Get an order, including its order items. | `200`, `404` |
+| `PUT` | `/api/orders/{id}` | Operator, Administrator | Replace the customer name and complete set of order lines. Existing reservations are restored before the new quantities are reserved, atomically. | `200`, `400` validation problem, `404`, `409` insufficient inventory |
 | `DELETE` | `/api/orders/{id}` | Administrator | Delete an order. | `204`, `404` |
+
+`PUT /api/items/{id}` sets `quantity` to the new available stock value; it does
+not adjust existing order lines. `PUT /api/orders/{id}` replaces all order
+lines, requires at least one line, and does not change the order ID or original
+placement date. Each requested item ID must be unique, exist in inventory, and
+have sufficient available stock after the order's previous reservations are
+returned. A failed reservation returns `409 Conflict` and leaves the original
+order and stock unchanged.
+
+Example full-update request bodies:
+
+```json
+{
+  "name": "Packing boxes",
+  "quantity": 12,
+  "location": "Warehouse B"
+}
+```
+
+```json
+{
+  "customerName": "Acme Logistics",
+  "items": [
+    {
+      "itemId": "replace-with-an-inventory-item-guid",
+      "quantity": 3
+    }
+  ]
+}
+```
 
 `GET /api/items` returns an `Items` collection and `TotalPages`. Each
 page/page-size combination is cached for up to 30 seconds. When testing
@@ -262,8 +295,12 @@ cached values until that entry expires.
 6. Exercise a normal workflow:
    - `POST /api/items` to create an item.
    - `GET /api/items` or `GET /api/items/{id}` to inspect inventory.
+   - `PUT /api/items/{id}` to replace the item's name, available quantity, and
+     location.
    - `POST /api/orders` using the created item's `itemId`.
-   - `GET /api/orders/{id}` using the returned `orderId`.
+   - `PUT /api/orders/{id}` using the returned `orderId` to replace the
+     customer name or reserved order lines.
+   - `GET /api/orders/{id}` to verify the updated order.
 7. To test administrator-only deletion, log in with the configured
    administrator account, authorize with that token, delete the order, then
    delete the now-unreferenced item. An operator token receives `403` for

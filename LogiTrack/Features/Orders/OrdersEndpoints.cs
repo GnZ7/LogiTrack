@@ -1,6 +1,7 @@
 ﻿using LogiTrack.Features.Orders.CreateOrder;
 using LogiTrack.Features.Orders.DeleteOrder;
 using LogiTrack.Features.Orders.GetOrder;
+using LogiTrack.Features.Orders.UpdateOrder;
 using LogiTrack.Features.Auth;
 
 namespace LogiTrack.Features.Orders
@@ -15,6 +16,7 @@ namespace LogiTrack.Features.Orders
             // Map Orders endpoints
             group.MapCreateOrder();
             group.MapGetOrder();
+            group.MapUpdateOrder();
             group.MapDeleteOrder();
         }
     }

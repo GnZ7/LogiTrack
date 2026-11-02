@@ -38,6 +38,29 @@ public class Order
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void Update(string customerName, List<OrderItem> items)
+    {
+        CustomerName = customerName;
+        var itemsById = items.ToDictionary(item => item.ItemId);
+
+        foreach (var existingItem in _items.ToArray())
+        {
+            if (itemsById.Remove(existingItem.ItemId, out var updatedItem))
+            {
+                existingItem.Name = updatedItem.Name;
+                existingItem.Quantity = updatedItem.Quantity;
+                existingItem.Location = updatedItem.Location;
+            }
+            else
+            {
+                _items.Remove(existingItem);
+            }
+        }
+
+        _items.AddRange(itemsById.Values);
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void RemoveItem(OrderItem item)
     {
         _items.Remove(item);
