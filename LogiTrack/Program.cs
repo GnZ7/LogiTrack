@@ -19,6 +19,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddProblemDetails()
                 .AddExceptionHandler<GlobalExceptionHandler>();
 
+builder.Services.AddMemoryCache();
+
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer((document, _, _) =>

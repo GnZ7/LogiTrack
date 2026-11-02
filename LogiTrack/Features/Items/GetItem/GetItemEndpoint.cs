@@ -1,6 +1,6 @@
 ﻿using LogiTrack.Data;
 using LogiTrack.Features.Items.Shared;
-using LogiTrack.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace LogiTrack.Features.Items.GetItem
 {
@@ -20,7 +20,9 @@ namespace LogiTrack.Features.Items.GetItem
             ILogger<Program> logger
             )
         {
-            var item = await dbContext.Items.FindAsync(id);
+            var item = await dbContext.Items
+                .AsNoTracking()
+                .FirstOrDefaultAsync(item => item.ItemId == id);
             
             if (item is null)
             {
