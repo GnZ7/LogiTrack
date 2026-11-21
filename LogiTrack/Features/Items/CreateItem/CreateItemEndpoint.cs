@@ -25,9 +25,7 @@ namespace LogiTrack.Features.Items.CreateItem
            var newItem = Item.Create(request.Name, request.Quantity, request.Location);
 
             dbContext.Items.Add(newItem);
-            await dbContext.SaveChangesAsync();
-
-            logger.LogInformation("Created new item ID: {ItemId}, Name: {ItemName}", newItem.ItemId, newItem.Name);
+            await dbContext.SaveChangesAsync();            
 
             return Results.CreatedAtRoute(
                 ItemsEndpointsNames.GetItem,

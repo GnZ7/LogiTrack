@@ -28,9 +28,7 @@ namespace LogiTrack.Features.Items.GetItem
             {
                 logger.LogWarning("Item with ID: {ItemId} not found.", id);
                 return Results.NotFound();
-            }
-
-            logger.LogInformation("Retrieved item ID: {ItemId}, Name: {ItemName}", item.ItemId, item.Name);
+            }           
 
             var response = new ItemResponse(item.ItemId, item.Name, item.Quantity, item.Location);
 
